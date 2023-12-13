@@ -6,9 +6,14 @@
 //
 
 import UIKit
+import RxSwift
+import RxCocoa
 
 class ViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
 
+    let crytopVm = CryptoViewModel()
+    var cryptoList = [Crypto]()
+    var disposeBag = DisposeBag()
 
     @IBOutlet weak var tableView: UITableView!
 
@@ -18,18 +23,35 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
 
         tableView.delegate = self
         tableView.dataSource = self
+
+        setupBindings()
+        crytopVm.requestData()
     }
 
+    private func setupBindings() {
+        crytopVm.error
+            .observe(on: MainScheduler.asyncInstance)
+            .subscribe { (error) in
+            print(error)
+        }.disposed(by: disposeBag)
+
+        crytopVm.cryptoList
+            .observe(on: MainScheduler.asyncInstance)
+            .subscribe { (cryptoList) in
+            self.cryptoList = cryptoList
+            self.tableView.reloadData()
+        }.disposed(by: disposeBag)
+    }
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 10
+        return cryptoList.count
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = UITableViewCell()
         var content = cell.defaultContentConfiguration()
-        content.text = "Crypto Currency"
-        content.secondaryText = "Price"
+        content.text = cryptoList[indexPath.row].currency
+        content.secondaryText = cryptoList[indexPath.row].price
         cell.contentConfiguration = content
         return cell
     }
