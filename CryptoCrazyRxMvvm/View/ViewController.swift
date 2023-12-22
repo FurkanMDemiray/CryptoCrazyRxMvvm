@@ -15,6 +15,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     var cryptoList = [Crypto]()
     var disposeBag = DisposeBag()
 
+    @IBOutlet weak var indicatorView: UIActivityIndicatorView!
     @IBOutlet weak var tableView: UITableView!
 
     override func viewDidLoad() {
@@ -29,6 +30,11 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     }
 
     private func setupBindings() {
+
+        crytopVm.loading
+            .bind(to: indicatorView.rx.isAnimating)
+            .disposed(by: disposeBag)
+
         crytopVm.error
             .observe(on: MainScheduler.asyncInstance)
             .subscribe { (error) in
@@ -41,6 +47,7 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
             self.cryptoList = cryptoList
             self.tableView.reloadData()
         }.disposed(by: disposeBag)
+
     }
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
